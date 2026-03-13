@@ -2,9 +2,9 @@ name: bankapp-devsecops-pipeline
 
 on:
   push:
-    branches: [ devops ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ devops ]
+    branches: [ "*" ]
 # Security: restrict default permissions to read-only
 permissions:
   contents: read
