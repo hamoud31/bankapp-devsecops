@@ -1,0 +1,57 @@
+# ==============================================================
+#  bankapp - DevSecOps CI/CD Pipeline
+# ==============================================================
+# Triggers on every push and pull request.
+# Stages: Lint → SCA → Build → Image Scan → IaC Scan → Deploy Manifest Update
+# ==============================================================
+
+name: bankapp-devsecops-pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  
+# Security: restrict default permissions to read-only
+permissions:
+  contents: read
+ env:
+  DOCKER_REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository }}/bankapp
+  
+jobs:
+  # -------------------------
+  # 1) Build & test (Java/Maven)
+  # -------------------------
+  build_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bankapp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Maven clean verify
+        run: mvn clean verify -DskipTests=false
+
+      - name: Archive JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bankapp-jar
+          path: bankapp/target/*.jar
