@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bankapp-target
-          path: target   # <‑‑ FIXED: correct path
+          path: target   # <‑‑ Correct path (inside bankapp/)
 
   # ---------------------------------------------------------
   # 3️⃣ Trivy Filesystem Scan
@@ -92,7 +92,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: bankapp-target
-          path: bankapp   # <‑‑ FIXED: download into bankapp/
+          path: bankapp   # <‑‑ Download into bankapp/
 
       - name: Debug artifact contents
         run: ls -R bankapp/target
