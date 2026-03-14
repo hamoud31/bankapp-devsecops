@@ -52,13 +52,12 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B package
-        
-      - name: Upload build artifacts
-       uses: actions/upload-artifact@v4
-       with:
-         name: bankapp-target
-         path: bankapp/target
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bankapp-target
+          path: bankapp/target
 
   # ---------------------------------------------------------
   # 3️⃣ Trivy Filesystem Scan
@@ -81,4 +80,41 @@ jobs:
   # ---------------------------------------------------------
   # 4️⃣ SonarQube Analysis & Quality Gate
   # ---------------------------------------------------------
- 
+  sonarqube:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: trivy_scan
+    outputs:
+      quality_gate: ${{ steps.quality_gate.outputs.quality-gate-status }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: bankapp-target
+          path: bankapp/target
+
+      - name: List build artifacts
+        run: ls -R bankapp/target
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectBaseDir=bankapp
+            -Dsonar.qualitygate.wait=true
+
+      - name: SonarQube Quality Gate check
+        id: quality_gate
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        with:
+          scanMetadataReportFile: bankapp/.scannerwork/report-task.txt
+          pollingTimeoutSec: 600
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
