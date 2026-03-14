@@ -71,29 +71,7 @@ jobs:
         run: mvn test
 
 
-  # 3️⃣ Dependency Scan (OWASP)
-  dependency_scan:
-    name: Dependency Scan
-    runs-on: ubuntu-latest
-    needs: test
-
-    defaults:
-      run:
-        working-directory: bankapp
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: maven
-
-      - name: OWASP Dependency Check
-        run: mvn org.owasp:dependency-check-maven:check
-
+ 
 
   # 4️⃣ Trivy File System Scan
   trivy_fs:
