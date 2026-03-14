@@ -55,7 +55,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bankapp-target
-          path: target/**   # <‑‑ IMPORTANT: prevents ZIP creation
+          path: target/**   # <‑‑ Upload files, NOT folder → avoids ZIP
 
   # ---------------------------------------------------------
   # 3️⃣ Trivy Filesystem Scan
@@ -85,12 +85,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0   # recommended for Sonar
 
       - uses: actions/download-artifact@v4
         with:
           name: bankapp-target
-          path: .   # <‑‑ Files appear directly in workspace, no ZIP
+          path: .   # <‑‑ Files appear directly, no ZIP
 
       - run: ls -R .
 
@@ -109,5 +109,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      - name: "Example show SonarQube Quality Gate Status value"
-        run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
+      - name: "Show SonarQube Quality Gate Status"
+        run: echo "Quality Gate: ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
