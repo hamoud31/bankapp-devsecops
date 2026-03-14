@@ -12,7 +12,7 @@ permissions:
 concurrency:
   group: bankapp-pipeline
   cancel-in-progress: true
-
+  
 jobs:
 
   # 1️⃣ Compile
