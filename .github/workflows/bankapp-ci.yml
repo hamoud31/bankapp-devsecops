@@ -98,10 +98,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: trivy_fs
 
-    defaults:
-      run:
-        working-directory: bankapp
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -123,22 +119,18 @@ jobs:
       - name: SonarQube Scan
         run: |
           mvn -B verify sonar:sonar \
-          -Dsonar.projectKey=bankapp \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.projectKey=bankapp \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-
-  # 5️⃣ Quality Gate Check
-  quality_gate:
-    name: Quality Gate Check
-    runs-on: ubuntu-latest
-    needs: sonarqube
-
-    steps:
-      - name: SonarQube Quality Gate
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
         uses: sonarsource/sonarqube-quality-gate-action@master
         with:
           pollingTimeoutSec: 600
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: "Show Quality Gate Status"
+        run: echo "Quality Gate: ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
