@@ -46,7 +46,6 @@ jobs:
           name: bankapp-target
           path: bankapp/target/*.jar
 
-
   # 2️⃣ Test
   test:
     name: Test
