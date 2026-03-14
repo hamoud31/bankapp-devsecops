@@ -76,7 +76,7 @@ jobs:
   trivy_fs:
     name: Trivy File System Scan
     runs-on: ubuntu-latest
-    needs: dependency_scan
+    needs: test
 
     defaults:
       run:
