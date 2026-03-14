@@ -12,7 +12,7 @@ permissions:
 concurrency:
   group: bankapp-pipeline
   cancel-in-progress: true
-  
+
 jobs:
 
   # 1️⃣ Compile
@@ -40,7 +40,6 @@ jobs:
       - name: Package
         run: mvn -B package
 
-      # Upload the entire target directory (NOT just the JAR)
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -99,35 +98,47 @@ jobs:
     runs-on: ubuntu-latest
     needs: trivy_fs
 
+    defaults:
+      run:
+        working-directory: bankapp
+
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # recommended for PR decoration
+          fetch-depth: 0
 
-      # Download the entire target directory
-      - uses: actions/download-artifact@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
         with:
           name: bankapp-target
-          path: ./bankapp/target
+          path: bankapp/target
 
-      - run: ls -R bankapp/target
-
-      # SonarQube Scan
       - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          
-      # Quality Gate Check
-      - name: SonarQube Quality Gate check
-        id: sonarqube-quality-gate-check
-        uses: sonarsource/sonarqube-quality-gate-action@master
+        run: |
+          mvn -B verify sonar:sonar \
+          -Dsonar.projectKey=bankapp \
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+
+  # 5️⃣ Quality Gate Check
+  quality_gate:
+    name: Quality Gate Check
+    runs-on: ubuntu-latest
+    needs: sonarqube
+
+    steps:
+      - name: SonarQube Quality Gate
+        uses: sonarsource/sonarqube-quality-gate-action@v1
         with:
           pollingTimeoutSec: 600
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-      - name: "Show Quality Gate Status"
-        run: echo "Quality Gate: ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
